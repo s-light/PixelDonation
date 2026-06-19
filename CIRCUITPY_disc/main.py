@@ -41,7 +41,7 @@ def read_sensor():
 # ── color helper ───────────────────────────────────────────────────────────────
 def hsv(h, s=1.0, v=1.0):
     c = gamma_adjust(CHSV(h % 1.0, s, v))
-    return (c.red, c.green, c.blue)
+    return (int(c.red * 255), int(c.green * 255), int(c.blue * 255))
 
 # ── thank-you animation ────────────────────────────────────────────────────────
 THANKYOU_COLOR = hsv(0.13, 1.0, 1.0)   # warm gold
@@ -78,7 +78,7 @@ def start_thankyou():
 # ── plasma standby ─────────────────────────────────────────────────────────────
 _PLASMA_SPEED = 0.4
 _PLASMA_SCALE = 4.0
-_PLASMA_VALUE = 0.12   # dim
+_PLASMA_VALUE = 0.6    # after gamma + brightness=0.3 → visibly dim
 
 def plasma_frame(t):
     for pixels in (pixels_apa, pixels_ws):
