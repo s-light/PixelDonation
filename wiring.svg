@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720">
+
+  <!-- background -->
+  <rect width="960" height="720" fill="#f8f9fa"/>
+
+  <!-- title -->
+  <text x="480" y="26" text-anchor="middle" font-family="monospace" font-size="15" font-weight="bold" fill="#222">PixelDonation — Wiring Diagram</text>
+  <text x="480" y="42" text-anchor="middle" font-family="monospace" font-size="10" fill="#666">ESP32-S3-DevKitC-1-N32R8  ·  74AHCT125 level shifter  ·  APA102  ·  WS2812B  ·  QTR-HD-01A</text>
+
+  <!-- ══ POWER RAILS ═══════════════════════════════════════════════════ -->
+  <!-- 5V bus -->
+  <line x1="175" y1="58" x2="790" y2="58" stroke="#e74c3c" stroke-width="3" stroke-dasharray="8,3"/>
+  <text x="800" y="62" font-family="monospace" font-size="10" fill="#e74c3c" font-weight="bold">5 V</text>
+  <!-- 3.3V bus -->
+  <line x1="175" y1="73" x2="600" y2="73" stroke="#e67e22" stroke-width="3" stroke-dasharray="8,3"/>
+  <text x="800" y="77" font-family="monospace" font-size="10" fill="#e67e22" font-weight="bold">3.3 V</text>
+  <!-- GND bus -->
+  <line x1="175" y1="645" x2="790" y2="645" stroke="#555" stroke-width="3" stroke-dasharray="8,3"/>
+  <text x="800" y="649" font-family="monospace" font-size="10" fill="#555" font-weight="bold">GND</text>
+
+  <!-- ══ ESP32-S3 DevKitC ═══════════════════════════════════════════════ -->
+  <rect x="20" y="100" width="155" height="510" rx="6" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+  <text x="97" y="122" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#ecf0f1">ESP32-S3</text>
+  <text x="97" y="136" text-anchor="middle" font-family="monospace" font-size="8" fill="#95a5a6">DevKitC-1-N32R8</text>
+
+  <!-- pins on right edge (x=175) -->
+  <!-- 5V -->
+  <circle cx="175" cy="170" r="5" fill="#e74c3c" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="167" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">5V</text>
+  <!-- 3.3V -->
+  <circle cx="175" cy="200" r="5" fill="#e67e22" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="197" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">3.3V</text>
+  <!-- GND -->
+  <circle cx="175" cy="230" r="5" fill="#7f8c8d" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="227" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">GND</text>
+  <!-- IO4 -->
+  <circle cx="175" cy="360" r="5" fill="#9b59b6" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="357" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">IO4</text>
+  <!-- IO11 -->
+  <circle cx="175" cy="405" r="5" fill="#d4ac0d" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="402" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">IO11</text>
+  <!-- IO12 -->
+  <circle cx="175" cy="440" r="5" fill="#2e86c1" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="437" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">IO12</text>
+  <!-- IO13 -->
+  <circle cx="175" cy="475" r="5" fill="#1e8449" stroke="white" stroke-width="1.5"/>
+  <text x="163" y="472" text-anchor="end" font-family="monospace" font-size="10" fill="#ecf0f1">IO13</text>
+
+  <!-- ESP32 → power buses -->
+  <polyline points="175,170 205,170 205,58" fill="none" stroke="#e74c3c" stroke-width="2"/>
+  <polyline points="175,200 218,200 218,73" fill="none" stroke="#e67e22" stroke-width="2"/>
+  <polyline points="175,230 232,230 232,645" fill="none" stroke="#555" stroke-width="2"/>
+
+  <!-- ══ 74AHCT125 Level Shifter ════════════════════════════════════════ -->
+  <rect x="310" y="215" width="135" height="250" rx="5" fill="#d35400" stroke="#a04000" stroke-width="2"/>
+  <text x="377" y="237" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#fff">74AHCT125</text>
+  <text x="377" y="250" text-anchor="middle" font-family="monospace" font-size="9" fill="#fad7a0">3.3V → 5V</text>
+
+  <!-- left pins (inputs) -->
+  <circle cx="310" cy="278" r="4" fill="#e74c3c" stroke="white" stroke-width="1.5"/>
+  <text x="320" y="282" font-family="monospace" font-size="9" fill="#fff">VCC (5V)</text>
+  <circle cx="310" cy="308" r="4" fill="#d4ac0d" stroke="white" stroke-width="1.5"/>
+  <text x="320" y="312" font-family="monospace" font-size="9" fill="#fff">A1 DATA in</text>
+  <circle cx="310" cy="338" r="4" fill="#2e86c1" stroke="white" stroke-width="1.5"/>
+  <text x="320" y="342" font-family="monospace" font-size="9" fill="#fff">A2 CLK in</text>
+  <circle cx="310" cy="368" r="4" fill="#1e8449" stroke="white" stroke-width="1.5"/>
+  <text x="320" y="372" font-family="monospace" font-size="9" fill="#fff">A3 WS in</text>
+  <circle cx="310" cy="440" r="4" fill="#7f8c8d" stroke="white" stroke-width="1.5"/>
+  <text x="320" y="444" font-family="monospace" font-size="9" fill="#fff">GND</text>
+  <text x="377" y="420" text-anchor="middle" font-family="monospace" font-size="8" fill="#fad7a0">/OE₁₋₃ → GND</text>
+
+  <!-- right pins (outputs) -->
+  <circle cx="445" cy="308" r="4" fill="#d4ac0d" stroke="white" stroke-width="1.5"/>
+  <text x="433" y="304" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">Y1</text>
+  <circle cx="445" cy="338" r="4" fill="#2e86c1" stroke="white" stroke-width="1.5"/>
+  <text x="433" y="334" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">Y2</text>
+  <circle cx="445" cy="368" r="4" fill="#1e8449" stroke="white" stroke-width="1.5"/>
+  <text x="433" y="364" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">Y3</text>
+
+  <!-- 74AHCT125 → power buses -->
+  <polyline points="310,278 278,278 278,58" fill="none" stroke="#e74c3c" stroke-width="2"/>
+  <polyline points="310,440 292,440 292,645" fill="none" stroke="#555" stroke-width="2"/>
+
+  <!-- ══ ESP32 → 74AHCT125 signal wires ════════════════════════════════ -->
+  <!-- IO11 → A1 (yellow, APA DATA) -->
+  <polyline points="175,405 248,405 248,308 310,308" fill="none" stroke="#d4ac0d" stroke-width="2"/>
+  <!-- IO12 → A2 (blue, APA CLK) -->
+  <polyline points="175,440 260,440 260,338 310,338" fill="none" stroke="#2e86c1" stroke-width="2"/>
+  <!-- IO13 → A3 (green, WS DATA) -->
+  <polyline points="175,475 272,475 272,368 310,368" fill="none" stroke="#1e8449" stroke-width="2"/>
+
+  <!-- ══ APA102 Connector ════════════════════════════════════════════════ -->
+  <rect x="600" y="100" width="175" height="140" rx="5" fill="#6c3483" stroke="#4a235a" stroke-width="2"/>
+  <text x="687" y="122" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="white">APA102 / DotStar</text>
+  <text x="687" y="137" text-anchor="middle" font-family="monospace" font-size="9" fill="#d7bde2">57 px  (29 + 28, folded)</text>
+  <text x="687" y="150" text-anchor="middle" font-family="monospace" font-size="8" fill="#d7bde2">4 m cable · baudrate 1 MHz</text>
+
+  <circle cx="600" cy="167" r="4" fill="#e74c3c" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="171" font-family="monospace" font-size="10" fill="white">VCC (5V)</text>
+  <circle cx="600" cy="188" r="4" fill="#7f8c8d" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="192" font-family="monospace" font-size="10" fill="white">GND</text>
+  <circle cx="600" cy="209" r="4" fill="#d4ac0d" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="213" font-family="monospace" font-size="10" fill="white">DATA  [330Ω]</text>
+  <circle cx="600" cy="228" r="4" fill="#2e86c1" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="232" font-family="monospace" font-size="10" fill="white">CLK   [330Ω]</text>
+
+  <!-- APA102 power -->
+  <polyline points="600,167 548,167 548,58" fill="none" stroke="#e74c3c" stroke-width="2"/>
+  <polyline points="600,188 558,188 558,645" fill="none" stroke="#555" stroke-width="2"/>
+
+  <!-- 74AHCT125 Y1 → APA DATA -->
+  <polyline points="445,308 520,308 520,209 600,209" fill="none" stroke="#d4ac0d" stroke-width="2"/>
+  <!-- 74AHCT125 Y2 → APA CLK -->
+  <polyline points="445,338 535,338 535,228 600,228" fill="none" stroke="#2e86c1" stroke-width="2"/>
+
+  <!-- ══ WS2812B Connector ═══════════════════════════════════════════════ -->
+  <rect x="600" y="290" width="175" height="110" rx="5" fill="#1e8449" stroke="#145a32" stroke-width="2"/>
+  <text x="687" y="312" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="white">WS2812B / NeoPixel</text>
+  <text x="687" y="327" text-anchor="middle" font-family="monospace" font-size="9" fill="#a9dfbf">NUM_WS pixels</text>
+
+  <circle cx="600" cy="343" r="4" fill="#e74c3c" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="347" font-family="monospace" font-size="10" fill="white">VCC (5V)</text>
+  <circle cx="600" cy="364" r="4" fill="#7f8c8d" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="368" font-family="monospace" font-size="10" fill="white">GND</text>
+  <circle cx="600" cy="385" r="4" fill="#1e8449" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="389" font-family="monospace" font-size="10" fill="white">DATA  [330Ω]</text>
+
+  <!-- WS2812B power -->
+  <polyline points="600,343 562,343 562,58" fill="none" stroke="#e74c3c" stroke-width="2"/>
+  <polyline points="600,364 570,364 570,645" fill="none" stroke="#555" stroke-width="2"/>
+
+  <!-- 74AHCT125 Y3 → WS DATA -->
+  <polyline points="445,368 600,368" fill="none" stroke="#1e8449" stroke-width="2"/>
+  <!-- close enough — need a small jog from 368 to 385 -->
+  <polyline points="445,368 545,368 545,385 600,385" fill="none" stroke="#1e8449" stroke-width="2"/>
+
+  <!-- ══ QTR-HD-01A Sensor ═══════════════════════════════════════════════ -->
+  <rect x="600" y="450" width="175" height="110" rx="5" fill="#1a5276" stroke="#154360" stroke-width="2"/>
+  <text x="687" y="472" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="white">QTR-HD-01A</text>
+  <text x="687" y="487" text-anchor="middle" font-family="monospace" font-size="9" fill="#aed6f1">IR reflectance sensor</text>
+
+  <circle cx="600" cy="503" r="4" fill="#e67e22" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="507" font-family="monospace" font-size="10" fill="white">VCC (3.3V)</text>
+  <circle cx="600" cy="524" r="4" fill="#7f8c8d" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="528" font-family="monospace" font-size="10" fill="white">GND</text>
+  <circle cx="600" cy="545" r="4" fill="#9b59b6" stroke="white" stroke-width="1.5"/>
+  <text x="612" y="549" font-family="monospace" font-size="10" fill="white">OUT → IO4</text>
+
+  <!-- QTR 3.3V from bus -->
+  <polyline points="600,503 578,503 578,73" fill="none" stroke="#e67e22" stroke-width="2"/>
+  <!-- QTR GND -->
+  <polyline points="600,524 580,524 580,645" fill="none" stroke="#555" stroke-width="2"/>
+  <!-- QTR OUT → ESP32 IO4 (route below components) -->
+  <polyline points="600,545 588,545 588,600 192,600 192,360 175,360" fill="none" stroke="#9b59b6" stroke-width="2"/>
+
+  <!-- ══ Legend ═══════════════════════════════════════════════════════════ -->
+  <rect x="20" y="660" width="920" height="52" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+  <line x1="32"  y1="675" x2="60"  y2="675" stroke="#e74c3c" stroke-width="3"/>
+  <text x="64"  y="679" font-family="monospace" font-size="9" fill="#333">5 V</text>
+  <line x1="100" y1="675" x2="128" y2="675" stroke="#e67e22" stroke-width="3"/>
+  <text x="132" y="679" font-family="monospace" font-size="9" fill="#333">3.3 V</text>
+  <line x1="172" y1="675" x2="200" y2="675" stroke="#555" stroke-width="3"/>
+  <text x="204" y="679" font-family="monospace" font-size="9" fill="#333">GND</text>
+  <line x1="240" y1="675" x2="268" y2="675" stroke="#d4ac0d" stroke-width="3"/>
+  <text x="272" y="679" font-family="monospace" font-size="9" fill="#333">APA DATA (IO11)</text>
+  <line x1="390" y1="675" x2="418" y2="675" stroke="#2e86c1" stroke-width="3"/>
+  <text x="422" y="679" font-family="monospace" font-size="9" fill="#333">APA CLK (IO12)</text>
+  <line x1="535" y1="675" x2="563" y2="675" stroke="#1e8449" stroke-width="3"/>
+  <text x="567" y="679" font-family="monospace" font-size="9" fill="#333">WS DATA (IO13)</text>
+  <line x1="675" y1="675" x2="703" y2="675" stroke="#9b59b6" stroke-width="3"/>
+  <text x="707" y="679" font-family="monospace" font-size="9" fill="#333">Sensor OUT (IO4)</text>
+
+  <text x="32"  y="703" font-family="monospace" font-size="9" fill="#555">Tips:  add 330 Ω series resistors on DATA/CLK lines close to the strip connector  ·  /OE₁₋₃ on 74AHCT125 all to GND  ·  /OE₄ to VCC (buffer 4 unused)</text>
+  <text x="32"  y="714" font-family="monospace" font-size="9" fill="#555">Power: ESP32 5V pin is USB VBUS — sufficient for dev/testing; use a separate 5V supply for longer strips  ·  decouple each strip VCC with 100 µF + 100 nF cap close to connector</text>
+
+</svg>
