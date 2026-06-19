@@ -78,7 +78,7 @@ def start_thankyou():
 # ── plasma standby ─────────────────────────────────────────────────────────────
 _PLASMA_SPEED = 0.4
 _PLASMA_SCALE = 4.0
-_PLASMA_VALUE = 0.6    # after gamma + brightness=0.3 → visibly dim
+_PLASMA_VALUE = 0.3    # tune to taste
 
 def plasma_frame(t):
     for pixels in (pixels_apa, pixels_ws):
