@@ -9,6 +9,8 @@ Circuitpython firmware for pixel-donation devices: a donation box with a sensor 
 -   [circuitpython](https://circuitpython.org/board/espressif_esp32s3_devkitc_1_n32r8/)
 -   [pin layout](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/_images/ESP32-S3_DevKitC-1_pinlayout.jpg)
 
+![Wiring Diagram](wiring.svg)
+
 ### Sensor
 
 [Pololu QTR-HD-01A Reflectance Sensor](https://www.pololu.com/product/4091) — single IR reflectance sensor with analog output.
