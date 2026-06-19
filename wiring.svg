@@ -77,10 +77,15 @@
   <text x="433" y="334" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">Y2</text>
   <circle cx="445" cy="368" r="4" fill="#1e8449" stroke="white" stroke-width="1.5"/>
   <text x="433" y="364" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">Y3</text>
+  <!-- /OE4 → 3.3V (disables unused buffer 4) -->
+  <circle cx="445" cy="452" r="4" fill="#e67e22" stroke="white" stroke-width="1.5"/>
+  <text x="433" y="448" text-anchor="end" font-family="monospace" font-size="9" fill="#fff">/OE₄</text>
 
   <!-- 74AHCT125 → power buses -->
   <polyline points="310,278 278,278 278,58" fill="none" stroke="#e74c3c" stroke-width="2"/>
   <polyline points="310,440 292,440 292,645" fill="none" stroke="#555" stroke-width="2"/>
+  <!-- /OE4 → 3.3V bus -->
+  <polyline points="445,452 480,452 480,73" fill="none" stroke="#e67e22" stroke-width="2"/>
 
   <!-- ══ ESP32 → 74AHCT125 signal wires ════════════════════════════════ -->
   <!-- IO11 → A1 (yellow, APA DATA) -->
@@ -171,7 +176,7 @@
   <line x1="675" y1="675" x2="703" y2="675" stroke="#9b59b6" stroke-width="3"/>
   <text x="707" y="679" font-family="monospace" font-size="9" fill="#333">Sensor OUT (IO4)</text>
 
-  <text x="32"  y="703" font-family="monospace" font-size="9" fill="#555">Tips:  add 330 Ω series resistors on DATA/CLK lines close to the strip connector  ·  /OE₁₋₃ on 74AHCT125 all to GND  ·  /OE₄ to VCC (buffer 4 unused)</text>
+  <text x="32"  y="703" font-family="monospace" font-size="9" fill="#555">Tips:  add 330 Ω series resistors on DATA/CLK lines close to the strip connector  ·  /OE₁₋₃ on 74AHCT125 all to GND  ·  /OE₄ to 3.3V (VIH = 2.0V, so 3.3V is valid HIGH; buffer 4 unused)</text>
   <text x="32"  y="714" font-family="monospace" font-size="9" fill="#555">Power: ESP32 5V pin is USB VBUS — sufficient for dev/testing; use a separate 5V supply for longer strips  ·  decouple each strip VCC with 100 µF + 100 nF cap close to connector</text>
 
 </svg>
