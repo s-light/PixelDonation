@@ -26,7 +26,8 @@ pixels_apa = adafruit_dotstar.DotStar(
 pixels_ws = neopixel.NeoPixel(board.IO13, NUM_WS, brightness=0.3, auto_write=False)
 
 sensor_pin = analogio.AnalogIn(board.IO4)
-dataio = usb_cdc.data  # second CDC port for SerialPlot
+# dataio = usb_cdc.data  # second CDC port for SerialPlot → not available on ESP32-S3
+dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
 _ema_fast = 0.0
@@ -129,7 +130,7 @@ while True:
 
     if dataio:
         dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};\n".encode()
+            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};\r\n".encode()
         )
 
     if state == STATE_STANDBY:
