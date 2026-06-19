@@ -12,7 +12,9 @@ from adafruit_fancyled.adafruit_fancyled import CHSV, gamma_adjust
 from adafruit_led_animation.animation.comet import Comet
 
 # ── hardware ───────────────────────────────────────────────────────────────────
-NUM_APA = 57  # 29 + 28 pixels, folded strip — treated as linear for now
+# APA102 strip is physically folded: col 0 goes up (29 px), col 1 goes down (28 px)
+COL_HEIGHTS = (29, 28)
+NUM_APA = sum(COL_HEIGHTS)  # 57
 NUM_WS = 30  # adjust to actual WS2812B strip length
 
 pixels_apa = adafruit_dotstar.DotStar(
@@ -34,7 +36,7 @@ _ema_fast = 0.0
 _ema_slow = 0.0
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
-DELTA_THRESHOLD = 3000  # 16-bit ADC units — tune after first run
+DELTA_THRESHOLD = 500  # 16-bit ADC units — tune after first run
 DEBOUNCE_S = 3.0
 _last_event_t = -DEBOUNCE_S
 
@@ -46,6 +48,20 @@ def read_sensor():
     _ema_slow = ALPHA_SLOW * raw + (1 - ALPHA_SLOW) * _ema_slow
     delta = _ema_fast - _ema_slow
     return raw, _ema_fast, _ema_slow, delta
+
+
+# ── strip layout ───────────────────────────────────────────────────────────────
+def pixel_xy(i):
+    """Map linear APA102 index to (col, row), origin bottom-left.
+
+    Col 0 (left):  pixels 0‥28, row increases upward.
+    Col 1 (right): pixels 29‥56, row decreases downward (snake).
+    Col 1 is one pixel shorter, so its bottom is at row 1.
+    """
+    if i < COL_HEIGHTS[0]:
+        return 0, i
+    else:
+        return 1, COL_HEIGHTS[0] - 1 - (i - COL_HEIGHTS[0])
 
 
 # ── color helper ───────────────────────────────────────────────────────────────
@@ -101,16 +117,30 @@ _PLASMA_VALUE = 0.3  # tune to taste
 
 
 def plasma_frame(t):
-    for pixels in (pixels_apa, pixels_ws):
-        n = len(pixels)
-        for i in range(n):
-            hue = (
-                math.sin(i / n * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
-                + math.sin(t * 0.23 + i / n * 2.0) * 0.15
-                + t * 0.04
-            )
-            pixels[i] = hsv(hue, 1.0, _PLASMA_VALUE)
-        pixels.show()
+    # APA102: use real 2D (col, row) coordinates for spatial variation
+    max_row = COL_HEIGHTS[0] - 1  # 28
+    for i in range(NUM_APA):
+        col, row = pixel_xy(i)
+        x = col  # 0.0 or 1.0 — sin(x*π) inverts phase between columns
+        y = row / max_row  # 0.0 .. 1.0
+        hue = (
+            math.sin(x * math.pi + y * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
+            + math.sin(y * 2.0 + t * 0.23) * 0.15
+            + t * 0.04
+        )
+        pixels_apa[i] = hsv(hue, 1.0, _PLASMA_VALUE)
+    pixels_apa.show()
+
+    # WS2812B: 1D plasma
+    n = len(pixels_ws)
+    for i in range(n):
+        hue = (
+            math.sin(i / n * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
+            + math.sin(t * 0.23 + i / n * 2.0) * 0.15
+            + t * 0.04
+        )
+        pixels_ws[i] = hsv(hue, 1.0, _PLASMA_VALUE)
+    pixels_ws.show()
 
 
 # ── main ───────────────────────────────────────────────────────────────────────

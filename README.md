@@ -13,7 +13,7 @@ Circuitpython firmware for pixel-donation devices: a donation box with a sensor 
 
 ### Sensor
 
-[Pololu QTR-HD-01A Reflectance Sensor](https://www.pololu.com/product/4091) — single IR reflectance sensor with analog output.
+[Pololu QTR-HD-01A Reflectance Sensor](https://www.pololu.com/product/4201) — single IR reflectance sensor with analog output.
 
 | Sensor pin | ESP32-S3 GPIO | CircuitPython | Notes                             |
 | ---------- | ------------- | ------------- | --------------------------------- |
