@@ -4,7 +4,6 @@
 import time
 import math
 import board
-import busio
 import analogio
 import usb_cdc
 import neopixel
@@ -16,8 +15,7 @@ from adafruit_led_animation.animation.comet import Comet
 NUM_APA = 57   # 29 + 28 pixels, folded strip — treated as linear for now
 NUM_WS  = 30   # adjust to actual WS2812B strip length
 
-spi        = busio.SPI(clock=board.IO12, MOSI=board.IO11)
-pixels_apa = adafruit_dotstar.DotStar(spi, NUM_APA, brightness=0.3, auto_write=False, baudrate=1_000_000)
+pixels_apa = adafruit_dotstar.DotStar(board.IO12, board.IO11, NUM_APA, brightness=0.3, auto_write=False, baudrate=1_000_000)
 pixels_ws  = neopixel.NeoPixel(board.IO13, NUM_WS, brightness=0.3, auto_write=False)
 
 sensor_pin = analogio.AnalogIn(board.IO4)
