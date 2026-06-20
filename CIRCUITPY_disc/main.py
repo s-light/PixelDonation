@@ -40,10 +40,11 @@ _ema_slow = _ema_fast
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
 
-# Raw-threshold detection: coin dip reaches 4500–21000; standby never drops below 35900.
-RAW_COIN_THRESHOLD = 30000
-SUSTAINED_COUNT = 3   # consecutive samples below threshold — coin dips last 1-5 samples
-DEBOUNCE_S = 3.0
+# Raw-threshold detection: coin dips reach 13000–34000; standby never drops below 35900.
+# Observed fast coins only dip for 1 sample, so SUSTAINED_COUNT must be 1.
+RAW_COIN_THRESHOLD = 35000
+SUSTAINED_COUNT = 1
+DEBOUNCE_S = 0.5      # short: no re-trigger risk with raw detection; allows coins seconds apart
 _last_event_t = -DEBOUNCE_S
 _below_count = 0
 
