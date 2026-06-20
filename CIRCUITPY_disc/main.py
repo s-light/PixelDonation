@@ -41,12 +41,11 @@ ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
 
 # Raw-threshold detection: coin dips reach 13000–34000; standby never drops below 35900.
-# Observed fast coins only dip for 1 sample, so SUSTAINED_COUNT must be 1.
+# Event fires on the RISING EDGE (coin leaves sensor), so holding a coin in never triggers.
 RAW_COIN_THRESHOLD = 35000
-SUSTAINED_COUNT = 1
-DEBOUNCE_S = 0.5      # short: no re-trigger risk with raw detection; allows coins seconds apart
+DEBOUNCE_S = 0.5
 _last_event_t = -DEBOUNCE_S
-_below_count = 0
+_coin_in = False
 
 
 def read_sensor():
@@ -95,11 +94,11 @@ state = STATE_STANDBY
 
 
 def _reseed_emas():
-    global _ema_fast, _ema_slow, _below_count
+    global _ema_fast, _ema_slow, _coin_in
     seed = float(sensor_pin.value)
     _ema_fast = seed
     _ema_slow = seed
-    _below_count = 0
+    _coin_in = False
 
 
 def _on_thankyou_done(animation):
@@ -170,20 +169,18 @@ while True:
     event = 0
 
     if raw < RAW_COIN_THRESHOLD:
-        _below_count += 1
-    else:
-        _below_count = 0
-
-    if _below_count >= SUSTAINED_COUNT and (now - _last_event_t) > DEBOUNCE_S:
-        _last_event_t = now
-        _below_count = 0
-        event = 1
-        if state == STATE_STANDBY:
-            start_thankyou()
+        _coin_in = True
+    elif _coin_in:
+        _coin_in = False
+        if (now - _last_event_t) > DEBOUNCE_S:
+            _last_event_t = now
+            event = 1
+            if state == STATE_STANDBY:
+                start_thankyou()
 
     if dataio:
         dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{_below_count};{state};\r\n".encode()
+            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{int(_coin_in)};{state};\r\n".encode()
         )
 
     if state == STATE_STANDBY:
