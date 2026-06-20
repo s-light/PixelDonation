@@ -30,12 +30,22 @@ sensor_pin = analogio.AnalogIn(board.IO4)
 dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
-# Raw-threshold detection: coin dips reach 13000–34000; standby never drops below 35900.
-# Event fires on the RISING EDGE (coin leaves sensor), so holding a coin in never triggers.
-RAW_COIN_THRESHOLD = 35000
+# Adaptive baseline + delta detection:
+#   - Slow EMA tracks ambient light drift (alpha ~0.005, tau ~2 s at ~100 Hz loop)
+#   - Baseline is frozen while coin_in=True so dips don't pull it down
+#   - coin_in fires when raw drops more than COIN_DIP_THRESHOLD below baseline
+#   - Event fires on the RISING EDGE (coin leaves sensor)
+#   - If coin_in stays True for > AMBIENT_RESEED_S, ambient light shifted → reseed baseline
+EMA_ALPHA = 0.005           # baseline time constant ~200 samples
+COIN_DIP_THRESHOLD = 2500   # raw must fall this far below baseline to register
+COIN_RISE_MARGIN = 1000     # hysteresis: rising edge when raw > baseline − COIN_RISE_MARGIN
 DEBOUNCE_S = 0.5
-_last_event_t = -DEBOUNCE_S
+AMBIENT_RESEED_S = 2.0      # stuck coin_in longer than this → ambient shift, reseed
+
+_baseline = None            # initialised from first sensor reading
 _coin_in = False
+_last_event_t = -DEBOUNCE_S
+_coin_in_start = 0.0
 
 
 # ── strip layout ───────────────────────────────────────────────────────────────
@@ -161,18 +171,30 @@ while True:
     raw = sensor_pin.value
     event = 0
 
-    if raw < RAW_COIN_THRESHOLD:
-        _coin_in = True
-    elif _coin_in:
-        _coin_in = False
-        if (now - _last_event_t) > DEBOUNCE_S:
-            _last_event_t = now
-            event = 1
-            if state == STATE_STANDBY:
-                start_thankyou()
+    if _baseline is None:
+        _baseline = float(raw)
+
+    delta = raw - int(_baseline)
+
+    if not _coin_in:
+        _baseline += EMA_ALPHA * (raw - _baseline)
+        if delta < -COIN_DIP_THRESHOLD:
+            _coin_in = True
+            _coin_in_start = now
+    else:
+        if delta >= -COIN_RISE_MARGIN:
+            _coin_in = False
+            if (now - _last_event_t) > DEBOUNCE_S:
+                _last_event_t = now
+                event = 1
+                if state == STATE_STANDBY:
+                    start_thankyou()
+        elif (now - _coin_in_start) > AMBIENT_RESEED_S:
+            _baseline = float(raw)
+            _coin_in = False
 
     if dataio:
-        dataio.write(f"{raw};{event};{int(_coin_in)};{state};\r\n".encode())
+        dataio.write(f"{raw};{int(_baseline)};{delta};{event};{int(_coin_in)};{state};\r\n".encode())
 
     if state == STATE_STANDBY:
         plasma_frame(now)

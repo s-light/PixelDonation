@@ -4,8 +4,8 @@
 Usage:
     python tools/analyse_plot.py temp/plot.csv [--window 20 40]
 
-Columns expected: raw,filtered,baseline,delta,event,above_count,state
-(above_count and state are optional — present only in firmware >= debug build)
+Columns (current firmware): raw,baseline,delta,event,coin_in,state
+Columns (old EMA firmware): raw,filtered,baseline,delta,event,coin_in,state
 """
 
 import argparse
@@ -50,11 +50,15 @@ def find_state_transitions(nonzero):
 
 
 def show_window(nonzero, center, before=20, after=40, label=""):
-    has_cnt = "above_count" in nonzero[0]
+    has_filt = "filtered" in nonzero[0]
+    has_base = "baseline" in nonzero[0]
     has_st = "state" in nonzero[0]
-    header = f"{'idx':>5} {'raw':>6} {'filt':>6} {'base':>6} {'delta':>7} {'ev':>2}"
-    if has_cnt:
-        header += f" {'cnt':>4}"
+    header = f"{'idx':>5} {'raw':>6}"
+    if has_filt:
+        header += f" {'filt':>6}"
+    if has_base:
+        header += f" {'base':>6}"
+    header += f" {'delta':>7} {'ev':>2}"
     if has_st:
         header += f" {'st':>2}"
     if label:
@@ -64,9 +68,12 @@ def show_window(nonzero, center, before=20, after=40, label=""):
     for i in range(start, end):
         r = nonzero[i]
         mark = " <--" if r.get("event", "0") == "1" else ""
-        line = f"{i:>5} {r['raw']:>6} {r['filtered']:>6} {r['baseline']:>6} {r['delta']:>7} {r.get('event','?'):>2}"
-        if has_cnt:
-            line += f" {r.get('above_count','?'):>4}"
+        line = f"{i:>5} {r['raw']:>6}"
+        if has_filt:
+            line += f" {r.get('filtered', '?'):>6}"
+        if has_base:
+            line += f" {r.get('baseline', '?'):>6}"
+        line += f" {r['delta']:>7} {r.get('event','?'):>2}"
         if has_st:
             line += f" {r.get('state','?'):>2}"
         print(line + mark)
