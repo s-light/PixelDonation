@@ -42,6 +42,8 @@ SUSTAINED_COUNT = 5   # consecutive samples above threshold required — filters
 DEBOUNCE_S = 3.0
 _last_event_t = -DEBOUNCE_S
 _above_count = 0
+SETTLE_WAIT = 50      # samples to skip after reseed; false re-triggers occur within 7 samples
+_settle_samples = 0
 
 
 def read_sensor():
@@ -90,13 +92,14 @@ state = STATE_STANDBY
 
 
 def _reseed_emas():
-    global _ema_fast, _ema_slow, _above_count
+    global _ema_fast, _ema_slow, _above_count, _settle_samples
     # average 50 samples so both EMAs start at the true current baseline;
     # a single sample can be noisy enough to cause hundreds of false triggers
     seed = sum(sensor_pin.value for _ in range(50)) / 50
     _ema_fast = seed
     _ema_slow = seed
     _above_count = 0
+    _settle_samples = SETTLE_WAIT
 
 
 def _on_thankyou_done(animation):
@@ -166,7 +169,10 @@ while True:
     raw, filtered, baseline, delta = read_sensor()
     event = 0
 
-    if abs(delta) > DELTA_THRESHOLD:
+    if _settle_samples > 0:
+        _settle_samples -= 1
+        _above_count = 0
+    elif abs(delta) > DELTA_THRESHOLD:
         _above_count += 1
     else:
         _above_count = 0
