@@ -32,8 +32,8 @@ sensor_pin = analogio.AnalogIn(board.IO4)
 dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
-# seed EMAs with the current reading so delta starts at zero
-_ema_fast = float(sensor_pin.value)
+# seed EMAs with average of 50 samples so delta starts near zero
+_ema_fast = sum(sensor_pin.value for _ in range(50)) / 50
 _ema_slow = _ema_fast
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
@@ -91,8 +91,11 @@ state = STATE_STANDBY
 
 def _reseed_emas():
     global _ema_fast, _ema_slow, _above_count
-    _ema_fast = float(sensor_pin.value)
-    _ema_slow = _ema_fast
+    # average 50 samples so both EMAs start at the true current baseline;
+    # a single sample can be noisy enough to cause hundreds of false triggers
+    seed = sum(sensor_pin.value for _ in range(50)) / 50
+    _ema_fast = seed
+    _ema_slow = seed
     _above_count = 0
 
 
@@ -163,7 +166,7 @@ while True:
     raw, filtered, baseline, delta = read_sensor()
     event = 0
 
-    if delta > DELTA_THRESHOLD:
+    if abs(delta) > DELTA_THRESHOLD:
         _above_count += 1
     else:
         _above_count = 0
