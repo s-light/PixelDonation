@@ -38,8 +38,10 @@ _ema_slow = _ema_fast
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
 DELTA_THRESHOLD = 70  # empirically derived: standby noise peaks ~35 (1σ), coin drop sustains ~90-107
+SUSTAINED_COUNT = 5   # consecutive samples above threshold required — filters 1-3 sample noise blips
 DEBOUNCE_S = 3.0
 _last_event_t = -DEBOUNCE_S
+_above_count = 0
 
 
 def read_sensor():
@@ -88,9 +90,10 @@ state = STATE_STANDBY
 
 
 def _reseed_emas():
-    global _ema_fast, _ema_slow
+    global _ema_fast, _ema_slow, _above_count
     _ema_fast = float(sensor_pin.value)
     _ema_slow = _ema_fast
+    _above_count = 0
 
 
 def _on_thankyou_done(animation):
@@ -161,8 +164,14 @@ while True:
         raw, filtered, baseline, delta = read_sensor()
         event = 0
 
-        if abs(delta) > DELTA_THRESHOLD and (now - _last_event_t) > DEBOUNCE_S:
+        if abs(delta) > DELTA_THRESHOLD:
+            _above_count += 1
+        else:
+            _above_count = 0
+
+        if _above_count >= SUSTAINED_COUNT and (now - _last_event_t) > DEBOUNCE_S:
             _last_event_t = now
+            _above_count = 0
             event = 1
             start_thankyou()
 
