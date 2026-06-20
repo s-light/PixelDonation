@@ -32,8 +32,9 @@ sensor_pin = analogio.AnalogIn(board.IO4)
 dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
-_ema_fast = 0.0
-_ema_slow = 0.0
+# seed EMAs with the current reading so delta starts at zero
+_ema_fast = float(sensor_pin.value)
+_ema_slow = _ema_fast
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
 DELTA_THRESHOLD = 70  # empirically derived: standby noise peaks ~35 (1σ), coin drop sustains ~90-107
@@ -86,11 +87,18 @@ STATE_THANKYOU = 1
 state = STATE_STANDBY
 
 
+def _reseed_emas():
+    global _ema_fast, _ema_slow
+    _ema_fast = float(sensor_pin.value)
+    _ema_slow = _ema_fast
+
+
 def _on_thankyou_done(animation):
     global state
     if animation.cycle_count >= 2:
         comet_apa.freeze()
         comet_ws.freeze()
+        _reseed_emas()  # avoid delta spike when standby resumes
         state = STATE_STANDBY
 
 
