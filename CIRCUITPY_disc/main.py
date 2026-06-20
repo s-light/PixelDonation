@@ -20,11 +20,11 @@ pixels_apa = adafruit_dotstar.DotStar(
     board.IO12,
     board.IO11,
     NUM_APA,
-    brightness=0.3,
+    brightness=1.0,
     auto_write=False,
     baudrate=1_000_000,
 )
-pixels_ws = neopixel.NeoPixel(board.IO13, NUM_WS, brightness=0.3, auto_write=False)
+pixels_ws = neopixel.NeoPixel(board.IO13, NUM_WS, brightness=1.0, auto_write=False)
 
 sensor_pin = analogio.AnalogIn(board.IO4)
 dataio = usb_cdc.console
@@ -132,23 +132,24 @@ def end_thankyou():
 
 
 # ── plasma standby ─────────────────────────────────────────────────────────────
-_PLASMA_SPEED = 0.4
-_PLASMA_SCALE = 4.0
-_PLASMA_VALUE = 0.3
+_PLASMA_SPEED = 0.08   # much slower drift
+_PLASMA_SCALE = 2.0   # smoother spatial gradient
+_PLASMA_SAT = 0.25    # low saturation — near-white with a hint of colour
+_PLASMA_VALUE = 0.12  # dim standby
 
 
 def plasma_frame(t):
     max_row = COL_HEIGHTS[0] - 1  # 28
     for i in range(NUM_APA):
         col, row = pixel_xy(i)
-        x = col            # 0 or 1 — gentle 1-radian phase shift between columns
-        y = row / max_row  # 0.0 .. 1.0
+        x = col
+        y = row / max_row
         hue = (
             math.sin(x + y * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
             + math.sin(y * 2.0 + t * 0.23) * 0.15
             + t * 0.04
         )
-        pixels_apa[i] = hsv(hue, 1.0, _PLASMA_VALUE)
+        pixels_apa[i] = hsv(hue, _PLASMA_SAT, _PLASMA_VALUE)
     pixels_apa.show()
 
     n = NUM_WS
@@ -158,7 +159,7 @@ def plasma_frame(t):
             + math.sin(t * 0.23 + i / n * 2.0) * 0.15
             + t * 0.04
         )
-        pixels_ws[i] = hsv(hue, 1.0, _PLASMA_VALUE)
+        pixels_ws[i] = hsv(hue, _PLASMA_SAT, _PLASMA_VALUE)
     pixels_ws.show()
 
 
