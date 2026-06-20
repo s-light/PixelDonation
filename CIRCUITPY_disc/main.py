@@ -149,21 +149,20 @@ print("PixelDonation - ready")
 while True:
     now = time.monotonic()
 
-    raw, filtered, baseline, delta = read_sensor()
-    event = 0
+    if state == STATE_STANDBY:
+        raw, filtered, baseline, delta = read_sensor()
+        event = 0
 
-    if abs(delta) > DELTA_THRESHOLD and (now - _last_event_t) > DEBOUNCE_S:
-        _last_event_t = now
-        event = 1
-        if state == STATE_STANDBY:
+        if abs(delta) > DELTA_THRESHOLD and (now - _last_event_t) > DEBOUNCE_S:
+            _last_event_t = now
+            event = 1
             start_thankyou()
 
-    if dataio:
-        dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};\r\n".encode()
-        )
+        if dataio:
+            dataio.write(
+                f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};\r\n".encode()
+            )
 
-    if state == STATE_STANDBY:
         plasma_frame(now)
     else:
         comet_apa.animate()
