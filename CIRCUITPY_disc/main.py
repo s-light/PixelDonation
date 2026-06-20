@@ -36,7 +36,7 @@ _ema_fast = 0.0
 _ema_slow = 0.0
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
-DELTA_THRESHOLD = 500  # 16-bit ADC units — tune after first run
+DELTA_THRESHOLD = 70  # empirically derived: standby noise peaks ~35 (1σ), coin drop sustains ~90-107
 DEBOUNCE_S = 3.0
 _last_event_t = -DEBOUNCE_S
 
