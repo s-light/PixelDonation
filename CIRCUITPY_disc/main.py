@@ -163,7 +163,7 @@ while True:
     raw, filtered, baseline, delta = read_sensor()
     event = 0
 
-    if abs(delta) > DELTA_THRESHOLD:
+    if delta > DELTA_THRESHOLD:
         _above_count += 1
     else:
         _above_count = 0
@@ -177,7 +177,7 @@ while True:
 
     if dataio:
         dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};\r\n".encode()
+            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{_above_count};{state};\r\n".encode()
         )
 
     if state == STATE_STANDBY:
