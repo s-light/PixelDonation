@@ -9,7 +9,6 @@ import usb_cdc
 import neopixel
 import adafruit_dotstar
 from adafruit_fancyled.adafruit_fancyled import CHSV, gamma_adjust
-from adafruit_led_animation.animation.comet import Comet
 
 # ── hardware ───────────────────────────────────────────────────────────────────
 # APA102 strip is physically folded: col 0 goes up (29 px), col 1 goes down (28 px)
@@ -28,18 +27,9 @@ pixels_apa = adafruit_dotstar.DotStar(
 pixels_ws = neopixel.NeoPixel(board.IO13, NUM_WS, brightness=0.3, auto_write=False)
 
 sensor_pin = analogio.AnalogIn(board.IO4)
-# dataio = usb_cdc.data  # second CDC port for SerialPlot → not available on ESP32-S3
 dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
-# EMA pair kept for serial streaming / visualisation only — NOT used for detection.
-# LED brightness changes ambient IR enough to shift the baseline by ~350 counts,
-# making EMA delta unreliable across standby↔animation transitions.
-_ema_fast = float(sensor_pin.value)
-_ema_slow = _ema_fast
-ALPHA_FAST = 0.1
-ALPHA_SLOW = 0.002
-
 # Raw-threshold detection: coin dips reach 13000–34000; standby never drops below 35900.
 # Event fires on the RISING EDGE (coin leaves sensor), so holding a coin in never triggers.
 RAW_COIN_THRESHOLD = 35000
@@ -48,22 +38,12 @@ _last_event_t = -DEBOUNCE_S
 _coin_in = False
 
 
-def read_sensor():
-    global _ema_fast, _ema_slow
-    raw = sensor_pin.value
-    _ema_fast = ALPHA_FAST * raw + (1 - ALPHA_FAST) * _ema_fast
-    _ema_slow = ALPHA_SLOW * raw + (1 - ALPHA_SLOW) * _ema_slow
-    delta = _ema_fast - _ema_slow
-    return raw, _ema_fast, _ema_slow, delta
-
-
 # ── strip layout ───────────────────────────────────────────────────────────────
 def pixel_xy(i):
     """Map linear APA102 index to (col, row), origin bottom-left.
 
     Col 0 (left):  pixels 0‥28, row increases upward.
     Col 1 (right): pixels 29‥56, row decreases downward (snake).
-    Col 1 is one pixel shorter, so its bottom is at row 1.
     """
     if i < COL_HEIGHTS[0]:
         return 0, i
@@ -78,77 +58,90 @@ def hsv(h, s=1.0, v=1.0):
 
 
 # ── thank-you animation ────────────────────────────────────────────────────────
-THANKYOU_COLOR = hsv(0.13, 1.0, 1.0)  # warm gold
+THANKYOU_HUE = 0.13      # warm gold
+THANKYOU_DURATION = 4.0  # seconds
 
-comet_apa = Comet(
-    pixels_apa, speed=0.02, color=THANKYOU_COLOR, tail_length=12, bounce=False
-)
-comet_ws = Comet(
-    pixels_ws, speed=0.02, color=THANKYOU_COLOR, tail_length=8, bounce=False
-)
+# APA102: comet rising from bottom to top on both columns simultaneously
+_APA_SWEEP_SPEED = 18.0  # rows per second (~1.6 s per pass over 28 rows)
+_APA_SWEEP_TAIL = 8      # rows of fading tail below the head
+
+
+def apa_thankyou_frame(elapsed):
+    max_row = COL_HEIGHTS[0] - 1  # 28
+    head = (elapsed * _APA_SWEEP_SPEED) % (max_row + _APA_SWEEP_TAIL + 2)
+    for i in range(NUM_APA):
+        _col, row = pixel_xy(i)
+        dist = head - row
+        if 0 <= dist < _APA_SWEEP_TAIL:
+            pixels_apa[i] = hsv(THANKYOU_HUE, 1.0, 1.0 - dist / _APA_SWEEP_TAIL)
+        else:
+            pixels_apa[i] = (0, 0, 0)
+    pixels_apa.show()
+
+
+# WS2812B: multiple gold segments chasing around the ring
+_WS_SEGMENTS = 4     # evenly-spaced segments
+_WS_SEG_LEN = 5      # lit pixels per segment (including head)
+_WS_CHASE_SPEED = 32.0  # pixels per second (~2 s per revolution)
+
+
+def ws_chase_frame(elapsed):
+    offset = int(elapsed * _WS_CHASE_SPEED) % NUM_WS
+    pixels_ws.fill((0, 0, 0))
+    step = NUM_WS // _WS_SEGMENTS
+    for seg in range(_WS_SEGMENTS):
+        head = (offset + seg * step) % NUM_WS
+        for j in range(_WS_SEG_LEN):
+            v = 1.0 - j / _WS_SEG_LEN
+            pixels_ws[(head - j) % NUM_WS] = hsv(THANKYOU_HUE, 1.0, v)
+    pixels_ws.show()
+
 
 # ── state machine ──────────────────────────────────────────────────────────────
 STATE_STANDBY = 0
 STATE_THANKYOU = 1
 state = STATE_STANDBY
-
-
-def _reseed_emas():
-    global _ema_fast, _ema_slow, _coin_in
-    seed = float(sensor_pin.value)
-    _ema_fast = seed
-    _ema_slow = seed
-    _coin_in = False
-
-
-def _on_thankyou_done(animation):
-    global state
-    if animation.cycle_count >= 2:
-        comet_apa.freeze()
-        comet_ws.freeze()
-        _reseed_emas()  # avoid delta spike when standby resumes
-        state = STATE_STANDBY
-
-
-comet_apa.add_cycle_complete_receiver(_on_thankyou_done)
-comet_apa.freeze()
-comet_ws.freeze()
+_thankyou_start_t = 0.0
 
 
 def start_thankyou():
-    global state
-    comet_apa.reset()
-    comet_apa.cycle_count = 0
-    comet_ws.reset()
-    comet_ws.cycle_count = 0
-    comet_apa.resume()
-    comet_ws.resume()
+    global state, _thankyou_start_t, _coin_in
+    _thankyou_start_t = time.monotonic()
+    _coin_in = False
     state = STATE_THANKYOU
+
+
+def end_thankyou():
+    global state, _coin_in
+    pixels_apa.fill((0, 0, 0))
+    pixels_apa.show()
+    pixels_ws.fill((0, 0, 0))
+    pixels_ws.show()
+    _coin_in = False
+    state = STATE_STANDBY
 
 
 # ── plasma standby ─────────────────────────────────────────────────────────────
 _PLASMA_SPEED = 0.4
 _PLASMA_SCALE = 4.0
-_PLASMA_VALUE = 0.3  # tune to taste
+_PLASMA_VALUE = 0.3
 
 
 def plasma_frame(t):
-    # APA102: use real 2D (col, row) coordinates for spatial variation
     max_row = COL_HEIGHTS[0] - 1  # 28
     for i in range(NUM_APA):
         col, row = pixel_xy(i)
-        x = col  # 0.0 or 1.0 — sin(x*π) inverts phase between columns
+        x = col            # 0 or 1 — gentle 1-radian phase shift between columns
         y = row / max_row  # 0.0 .. 1.0
         hue = (
-            math.sin(x * math.pi + y * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
+            math.sin(x + y * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
             + math.sin(y * 2.0 + t * 0.23) * 0.15
             + t * 0.04
         )
         pixels_apa[i] = hsv(hue, 1.0, _PLASMA_VALUE)
     pixels_apa.show()
 
-    # WS2812B: 1D plasma
-    n = len(pixels_ws)
+    n = NUM_WS
     for i in range(n):
         hue = (
             math.sin(i / n * _PLASMA_SCALE + t * _PLASMA_SPEED) * 0.25
@@ -165,7 +158,7 @@ print("PixelDonation - ready")
 while True:
     now = time.monotonic()
 
-    raw, filtered, baseline, delta = read_sensor()
+    raw = sensor_pin.value
     event = 0
 
     if raw < RAW_COIN_THRESHOLD:
@@ -179,12 +172,14 @@ while True:
                 start_thankyou()
 
     if dataio:
-        dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{int(_coin_in)};{state};\r\n".encode()
-        )
+        dataio.write(f"{raw};{event};{int(_coin_in)};{state};\r\n".encode())
 
     if state == STATE_STANDBY:
         plasma_frame(now)
     else:
-        comet_apa.animate()
-        comet_ws.animate()
+        elapsed = now - _thankyou_start_t
+        if elapsed >= THANKYOU_DURATION:
+            end_thankyou()
+        else:
+            apa_thankyou_frame(elapsed)
+            ws_chase_frame(elapsed)
