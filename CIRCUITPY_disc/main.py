@@ -32,18 +32,20 @@ sensor_pin = analogio.AnalogIn(board.IO4)
 dataio = usb_cdc.console
 
 # ── sensor / event detection ───────────────────────────────────────────────────
-# seed EMAs with average of 50 samples so delta starts near zero
-_ema_fast = sum(sensor_pin.value for _ in range(50)) / 50
+# EMA pair kept for serial streaming / visualisation only — NOT used for detection.
+# LED brightness changes ambient IR enough to shift the baseline by ~350 counts,
+# making EMA delta unreliable across standby↔animation transitions.
+_ema_fast = float(sensor_pin.value)
 _ema_slow = _ema_fast
 ALPHA_FAST = 0.1
 ALPHA_SLOW = 0.002
-DELTA_THRESHOLD = 70  # empirically derived: standby noise peaks ~35 (1σ), coin drop sustains ~90-107
-SUSTAINED_COUNT = 5   # consecutive samples above threshold required — filters 1-3 sample noise blips
+
+# Raw-threshold detection: coin dip reaches 4500–21000; standby never drops below 35900.
+RAW_COIN_THRESHOLD = 30000
+SUSTAINED_COUNT = 3   # consecutive samples below threshold — coin dips last 1-5 samples
 DEBOUNCE_S = 3.0
 _last_event_t = -DEBOUNCE_S
-_above_count = 0
-SETTLE_WAIT = 50      # samples to skip after reseed; false re-triggers occur within 7 samples
-_settle_samples = 0
+_below_count = 0
 
 
 def read_sensor():
@@ -92,14 +94,11 @@ state = STATE_STANDBY
 
 
 def _reseed_emas():
-    global _ema_fast, _ema_slow, _above_count, _settle_samples
-    # average 50 samples so both EMAs start at the true current baseline;
-    # a single sample can be noisy enough to cause hundreds of false triggers
-    seed = sum(sensor_pin.value for _ in range(50)) / 50
+    global _ema_fast, _ema_slow, _below_count
+    seed = float(sensor_pin.value)
     _ema_fast = seed
     _ema_slow = seed
-    _above_count = 0
-    _settle_samples = SETTLE_WAIT
+    _below_count = 0
 
 
 def _on_thankyou_done(animation):
@@ -169,24 +168,21 @@ while True:
     raw, filtered, baseline, delta = read_sensor()
     event = 0
 
-    if _settle_samples > 0:
-        _settle_samples -= 1
-        _above_count = 0
-    elif abs(delta) > DELTA_THRESHOLD:
-        _above_count += 1
+    if raw < RAW_COIN_THRESHOLD:
+        _below_count += 1
     else:
-        _above_count = 0
+        _below_count = 0
 
-    if _above_count >= SUSTAINED_COUNT and (now - _last_event_t) > DEBOUNCE_S:
+    if _below_count >= SUSTAINED_COUNT and (now - _last_event_t) > DEBOUNCE_S:
         _last_event_t = now
-        _above_count = 0
+        _below_count = 0
         event = 1
         if state == STATE_STANDBY:
             start_thankyou()
 
     if dataio:
         dataio.write(
-            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{_above_count};{state};\r\n".encode()
+            f"{raw};{filtered:.0f};{baseline:.0f};{delta:.0f};{event};{_below_count};{state};\r\n".encode()
         )
 
     if state == STATE_STANDBY:
