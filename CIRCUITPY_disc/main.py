@@ -15,7 +15,7 @@ from adafruit_led_animation.animation.comet import Comet
 # APA102 strip is physically folded: col 0 goes up (29 px), col 1 goes down (28 px)
 COL_HEIGHTS = (29, 28)
 NUM_APA = sum(COL_HEIGHTS)  # 57
-NUM_WS = 30  # adjust to actual WS2812B strip length
+NUM_WS = 64
 
 pixels_apa = adafruit_dotstar.DotStar(
     board.IO12,
