@@ -135,7 +135,7 @@ def end_thankyou():
 _PLASMA_SPEED = 0.08   # much slower drift
 _PLASMA_SCALE = 2.0   # smoother spatial gradient
 _PLASMA_SAT = 0.25    # low saturation — near-white with a hint of colour
-_PLASMA_VALUE = 0.12  # dim standby
+_PLASMA_VALUE = 0.4  # dim standby
 
 
 def plasma_frame(t):
